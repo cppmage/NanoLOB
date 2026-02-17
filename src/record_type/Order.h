@@ -28,7 +28,7 @@ namespace lob {
 		uint32_t executed_qty;
 		uint64_t timestamp;
 	
-		uint8_t reserved[16];
+		//uint8_t reserved[16];
 		Order(uint64_t id_, int64_t price_, uint32_t quantity_, uint64_t timestamp_)
 			: id(id_), price(price_), quantity(quantity_),
 			executed_qty(0), timestamp(timestamp_) 
