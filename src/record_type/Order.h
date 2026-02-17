@@ -17,7 +17,7 @@ namespace lob {
 			if (a.price != b.price) return a.price < b.price;
 			return a.id < b.id; 
 		}
-		friend bool operator<(const Order& a, const Order& b) {
+		friend bool operator>(const Order& a, const Order& b) {
 			if (a.price != b.price) return a.price > b.price;
 			return a.id > b.id; 
 		}

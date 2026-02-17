@@ -27,9 +27,7 @@ namespace lob {
 		}
 		void add(uint64_t id, int64_t price, uint32_t quantity) {
 
-			if (orders_registry.find(id) != orders_registry.end()) {
-				orders_registry[id];
-			}
+			
 			assert(orders_registry.find(id) == orders_registry.end() && "Duplicate Order ID!");
 
 			//Order* order = new Order(id, price, quantity, 0);
