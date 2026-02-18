@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Добавьте источник в исполняемый файл этого проекта.
 add_executable (NanoLOB "src/main.cpp" "src/record_type/Order.h" "src/bucket/Bucket.h" "src/bitset/Bitset.h" "src/store/OrderStore.h"
-"src/OrderBook/OrderBook.h" "src/allocators/ObjectPool.h")
+"src/OrderBook/OrderBook.h" "src/allocators/ObjectPool.h" "src/lockfree/SPSCQueue.h")
 
 # 1. Look for libs
 find_package(absl REQUIRED)
@@ -55,7 +55,7 @@ endif()
 
 
 # Tests
-add_executable(unit_tests "tests/UnitTestBucket.cpp" "tests/UnitTestBits.cpp" "tests/UnitTestOrder.cpp" "tests/UnitTestOrderBook.cpp" "tests/UnitTestObjectPool.cpp")
+add_executable(unit_tests "tests/UnitTestBucket.cpp" "tests/UnitTestBits.cpp" "tests/UnitTestOrder.cpp" "tests/UnitTestOrderBook.cpp" "tests/UnitTestObjectPool.cpp" "tests/UnitTestSPSCQueue.cpp")
 target_compile_features(unit_tests PRIVATE cxx_std_23)
 target_include_directories(unit_tests PRIVATE 
     src 
@@ -63,5 +63,5 @@ target_include_directories(unit_tests PRIVATE
 target_link_libraries(unit_tests PRIVATE lob_config GTest::gtest_main)
 
 # Benchs 
-add_executable(benchmarks "bench/OrderBookBench.cpp" "bench/OrderBookBenchBuyExisted.cpp")
+add_executable(benchmarks "bench/OrderBookBench.cpp" "bench/OrderBookBenchBuyExisted.cpp" "bench/SPSCQueueBench.cpp")
 target_link_libraries(benchmarks PRIVATE lob_config benchmark::benchmark_main)
