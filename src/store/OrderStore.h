@@ -22,7 +22,7 @@ namespace lob {
 			return (static_cast<size_t>(price) - min_price) / bucket_size;
 		}
 	public:
-		OrderStore(size_t capacity = 2500000) : pool(capacity){
+		OrderStore(size_t capacity = 2100000) : pool(capacity){
 			orders_registry.reserve(capacity);
 		}
 		void add(uint64_t id, int64_t price, uint32_t quantity) {
@@ -44,6 +44,7 @@ namespace lob {
 			buckets[bucket_id].add(*order);
 			bitset.set(bucket_id);
 		}
+
 		/*
 		* 1. Find and get iterator
 		* 2. Get ptr of Order

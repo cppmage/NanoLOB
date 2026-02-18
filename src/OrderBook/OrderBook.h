@@ -21,11 +21,12 @@ namespace lob {
 		OrderStore<min_price, max_price, bucket_size, arr_size> asks, bids;
 	public:
 
-		void limit_buy(uint64_t id, int64_t price, uint32_t quantity) {
+		int limit_buy(uint64_t id, int64_t price, uint32_t quantity) {
 
 			uint32_t remaining_qty = try_match<Side::Buy>(price, quantity, id);
-            if (remaining_qty == 0)return;
+            if (remaining_qty == 0)return 0;
 			bids.add(id, price, remaining_qty);
+            return remaining_qty;
 		}
 		void limit_sell(uint64_t id, int64_t price, uint32_t quantity) {
 
@@ -44,7 +45,6 @@ namespace lob {
 	private:
         template<Side side>
         uint32_t try_match(int64_t price, uint32_t quantity, uint64_t id) {
-            // Если мы BUY, ищем в ASKS. Если мы SELL, ищем в BIDS.
             auto& opposite_store = (side == Side::Buy) ? asks : bids;
 
             while (quantity > 0) {
@@ -52,7 +52,6 @@ namespace lob {
 
                 if (!opposite) break;
 
-                
                 bool price_match = (side == Side::Buy) ? (price >= opposite->price) : (price <= opposite->price);
                 if (!price_match) break;
 
@@ -60,17 +59,14 @@ namespace lob {
 
                
                 if (match_qty == opposite->quantity) {
-                    opposite_store.cancel(opposite->id); // Полное съедание
+                    opposite_store.cancel(opposite->id);
                 }
                 else {
-                    opposite->quantity -= match_qty; // Частичное исполнение
-                    // В HFT тут еще нужно обновить total_volume в бакете!
+                    opposite->quantity -= match_qty; 
                 }
 
-                // Вывод трейда (потом заменим на Lock-free очередь)
-                // std::cout << id << " matched " << opposite->id << ...
-                //std::cout << match_qty << std::endl;
-
+                // Вывод трейда (Lock-free очередь)
+                
                 quantity -= match_qty;
             }
             return quantity;

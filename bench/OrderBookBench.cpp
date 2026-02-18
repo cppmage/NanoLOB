@@ -24,7 +24,7 @@ static void BM_OrderStoreAddCancel(benchmark::State& state) {
     state.SetItemsProcessed(state.iterations());
 }
 
-static lob::OrderBook<0, 1000000, 100> book;
+static lob::OrderBook<0, 1000000, 1> book;
 static void BM_OrderBookMatching(benchmark::State& state) {
     
 
@@ -55,6 +55,7 @@ static void BM_OrderBookMatching(benchmark::State& state) {
         i++;
 
     }
+    state.SetItemsProcessed(state.iterations());
 }
 
 

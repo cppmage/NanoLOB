@@ -5,7 +5,6 @@
 using namespace boost;
 
 namespace lob {
-	//using order_hook =  intrusive::list_base_hook<intrusive::link_mode<intrusive::auto_unlink>>;
 	using order_hook = intrusive::list_base_hook<intrusive::link_mode<intrusive::auto_unlink>>;
 
 	struct alignas(64) Order : public order_hook {

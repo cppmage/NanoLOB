@@ -7,7 +7,7 @@ using namespace lob;
 
 class OrderStoreTest : public ::testing::Test {
 protected:
-    OrderStore<0, 100, 10> store;
+    OrderStore<0, 100, 1> store;
 };
 
 TEST_F(OrderStoreTest, AddAndCancelOrders) {
