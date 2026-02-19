@@ -1,11 +1,29 @@
 ﻿#include <benchmark/benchmark.h>
 #include "store/OrderStore.h"
-#include "OrderBook/OrderBook.h"
-#include <random>
+#include "output/ConsoleOutput.h"
+#include "logger/Logger.h"
 
+#include "OrderBook/OrderBook.h"
+#include "TradeEvent/TradeEvent.h"
+#include <random>
+#include <thread>
+
+
+
+template<typename queue_t = lob::TradeEventsQueue>
+void consumer(std::stop_token stoken, queue_t& queue) {
+    int value = 0;
+    lob::TradeEvent event;
+    while (!stoken.stop_requested()) {
+        queue.try_pop(event);
+    }
+}
 
 static void BM_OrderBookRealMatchingV1(benchmark::State& state) {
-    lob::OrderBook<0, 1000000, 100> book;
+    lob::TradeEventsQueue queue;
+    std::jthread jtc(consumer<lob::TradeEventsQueue>, std::ref(queue));
+
+    lob::OrderBook<0, 1000000, 100> book(queue);
 
     const size_t N = 1000000;
     std::vector<int64_t> prices(N);
@@ -38,10 +56,53 @@ static void BM_OrderBookRealMatchingV1(benchmark::State& state) {
 
     state.SetItemsProcessed(state.iterations());
 }
+    
 
-static lob::OrderBook<0, 1000000, 1> book;
+#include <thread>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <pthread.h>
+#include <sched.h>
+#endif
+
+void pin_thread_to_core(int core_id) {
+#ifdef _WIN32
+    // Windows: устанавливаем маску (1 << core_id)
+    HANDLE thread = GetCurrentThread();
+    DWORD_PTR mask = (static_cast<DWORD_PTR>(1) << core_id);
+    SetThreadAffinityMask(thread, mask);
+#else
+    // Linux: используем cpu_set_t
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core_id, &cpuset);
+    pthread_t current_thread = pthread_self();
+    pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
+#endif
+}
+
+static lob::TradeEventsQueue queue1;
+static lob::OrderBook<0, 1000000, 1> book(queue1);
+
 static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
+    
+    
+    lob::WALQueue wal_queue("BENCH_WAL.bin");
+    lob::Logger logger(queue1, wal_queue);
+    lob::ConsoleOutput output(wal_queue);
 
+    std::jthread jt1([&logger](std::stop_token st) {
+        pin_thread_to_core(2);
+        logger.process(st);
+        });
+    std::jthread jt2([&output](std::stop_token st) {
+        pin_thread_to_core(1);
+        output.process(st);
+        });
+
+    pin_thread_to_core(0);
 
     const size_t N = 1000000;
     std::vector<int64_t> buy_prices(N);
@@ -79,9 +140,13 @@ static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
         
     }
 
+    jt1.request_stop();
+    jt2.request_stop();
+
+
     state.SetItemsProcessed(state.iterations());
 }
 
 
 BENCHMARK(BM_OrderBookRealMatchingV1)->Iterations(1000000);
-BENCHMARK(BM_OrderBookRealMatchingV2)->Iterations(1000000);
+//BENCHMARK(BM_OrderBookRealMatchingV2)->Iterations(1000000);

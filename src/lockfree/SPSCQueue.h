@@ -4,6 +4,9 @@
 #include <new>
 
 namespace lob {
+
+	
+
 	template<typename T, size_t power_of_two>
 	class SPSCQueue {
 	private:
@@ -47,5 +50,33 @@ namespace lob {
 			return tail.load(std::memory_order::acquire) == head.load(std::memory_order::acquire);
 		}
 
+		T* prepare_push() noexcept {
+			const size_t t = tail.load(std::memory_order::acquire);
+			if (t - head.load(std::memory_order_acquire) == size) [[unlikely]] {
+				return nullptr;
+			}
+			return &arr[t & mask];
+		}
+		// Only after prepare_push returned something except nullptr
+		void commit_push() noexcept {
+			tail.fetch_add(1, std::memory_order::release);
+		}
+
+		T* prepare_pop() noexcept {
+			const size_t h = head.load(std::memory_order::acquire);
+			if (h == tail.load(std::memory_order_acquire)) [[unlikely]] {
+				return nullptr;
+			}
+			return &arr[h & mask];
+		}
+		// Only after prepare_pop returned something except nullptr
+		void commit_pop() noexcept {
+			head.fetch_add(1, std::memory_order::release);
+		}
+
 	};
+
+
 }
+
+

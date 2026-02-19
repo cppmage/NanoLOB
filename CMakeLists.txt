@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Добавьте источник в исполняемый файл этого проекта.
 add_executable (NanoLOB "src/main.cpp" "src/record_type/Order.h" "src/bucket/Bucket.h" "src/bitset/Bitset.h" "src/store/OrderStore.h"
-"src/OrderBook/OrderBook.h" "src/allocators/ObjectPool.h" "src/lockfree/SPSCQueue.h")
+"src/OrderBook/OrderBook.h" "src/allocators/ObjectPool.h" "src/lockfree/SPSCQueue.h" "src/logger/Logger.h" "src/TradeEvent/TradeEvent.h" "src/wal/WALShared.h" "src/other/Other.h" "src/output/ConsoleOutput.h")
 
 # 1. Look for libs
 find_package(absl REQUIRED)
@@ -55,7 +55,7 @@ endif()
 
 
 # Tests
-add_executable(unit_tests "tests/UnitTestBucket.cpp" "tests/UnitTestBits.cpp" "tests/UnitTestOrder.cpp" "tests/UnitTestOrderBook.cpp" "tests/UnitTestObjectPool.cpp" "tests/UnitTestSPSCQueue.cpp")
+add_executable(unit_tests "tests/UnitTestBucket.cpp" "tests/UnitTestBits.cpp" "tests/UnitTestOrder.cpp" "tests/UnitTestOrderBook.cpp" "tests/UnitTestObjectPool.cpp" "tests/UnitTestSPSCQueue.cpp" "tests/UnitTestWALShared.cpp" "tests/UnitTestLogger.cpp")
 target_compile_features(unit_tests PRIVATE cxx_std_23)
 target_include_directories(unit_tests PRIVATE 
     src 

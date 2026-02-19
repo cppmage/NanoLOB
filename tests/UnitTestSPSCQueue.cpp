@@ -213,3 +213,76 @@ TEST_F(SPSCQueueTest, MultithreadedWithDelays) {
 
     EXPECT_EQ(sum1.load(), sum2.load());
 }
+
+TEST_F(SPSCQueueTest, BasicZeroCopyFlow1) {
+    lob::SPSCQueue<std::string, 10> queue; // размер 1024
+
+    // Producer side
+    auto* push_ptr = queue.prepare_push();
+    ASSERT_NE(push_ptr, nullptr);
+    *push_ptr = "Hello Lock-Free";
+    queue.commit_push();
+
+    // Consumer side
+    auto* pop_ptr = queue.prepare_pop();
+    ASSERT_NE(pop_ptr, nullptr);
+    EXPECT_EQ(*pop_ptr, "Hello Lock-Free");
+    queue.commit_pop(); // Исправленное имя
+}
+
+TEST_F(SPSCQueueTest, FullQueueBehavior1) {
+    const size_t q_size = 4; // (1 << 2)
+    lob::SPSCQueue<int, 2> queue;
+
+    // Заполняем до упора
+    for (size_t i = 0; i < q_size; ++i) {
+        int* ptr = queue.prepare_push();
+        ASSERT_NE(ptr, nullptr) << "Failed at index " << i;
+        *ptr = i;
+        queue.commit_push();
+    }
+
+    // Пятая попытка должна вернуть nullptr
+    EXPECT_EQ(queue.prepare_push(), nullptr);
+
+    // Читаем один элемент
+    int* pop_ptr = queue.prepare_pop();
+    EXPECT_EQ(*pop_ptr, 0);
+    queue.commit_pop();
+
+    // Теперь место должно освободиться
+    EXPECT_NE(queue.prepare_push(), nullptr);
+}
+
+
+TEST_F(SPSCQueueTest, ThreadedStressTest1) {
+    lob::SPSCQueue<uint64_t, 12> queue; // 4096 элементов
+    const uint64_t iterations = 1'000'000;
+
+    std::thread producer([&]() {
+        for (uint64_t i = 0; i < iterations; ++i) {
+            uint64_t* ptr = nullptr;
+            while ((ptr = queue.prepare_push()) == nullptr) {
+                std::this_thread::yield(); // Ждем место
+            }
+            *ptr = i;
+            queue.commit_push();
+        }
+        });
+
+    std::thread consumer([&]() {
+        for (uint64_t i = 0; i < iterations; ++i) {
+            uint64_t* ptr = nullptr;
+            while ((ptr = queue.prepare_pop()) == nullptr) {
+                std::this_thread::yield(); // Ждем данные
+            }
+            if (*ptr != i) {
+                FAIL() << "Data corruption at " << i << ". Got " << *ptr;
+            }
+            queue.commit_pop();
+        }
+        });
+
+    producer.join();
+    consumer.join();
+}

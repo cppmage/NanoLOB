@@ -24,15 +24,18 @@ static void BM_OrderStoreAddCancel(benchmark::State& state) {
     state.SetItemsProcessed(state.iterations());
 }
 
-static lob::OrderBook<0, 1000000, 1> book;
+
+
 static void BM_OrderBookMatching(benchmark::State& state) {
     
+    lob::TradeEventsQueue queue;
+    lob::OrderBook<0, 100000, 1> book(queue);
 
     // 1. Пре-генерация данных (чтобы не тратить время в цикле)
     const size_t test_size = 100000;
     std::vector<int64_t> prices(test_size);
     std::mt19937 gen(42);
-    std::uniform_int_distribution<int64_t> dist(1, 90000); // Чтобы не вылетать за границы
+    std::uniform_int_distribution<int64_t> dist(1, 9000); // Чтобы не вылетать за границы
     for (auto& p : prices) p = dist(gen);
 
     uint64_t id = 1;
