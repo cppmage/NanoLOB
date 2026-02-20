@@ -4,12 +4,13 @@
 
 namespace lob {
 
-	static uint64_t getCurrentTimeAsUint64() noexcept {
+	static uint64_t getCurrentTimeAsUint641() noexcept {
+		
 		auto now = std::chrono::system_clock::now();
 		auto duration = now.time_since_epoch();
 		return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count());
 	}
-
+    
 }
 
 #if defined(_MSC_VER)
@@ -33,3 +34,4 @@ namespace lob {
 inline void smart_pause() noexcept {
     CPU_PAUSE();
 }
+

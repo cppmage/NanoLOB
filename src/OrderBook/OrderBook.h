@@ -2,7 +2,7 @@
 
 #include <store/OrderStore.h>
 #include <TradeEvent/TradeEvent.h>
-
+#include <time/Time.h>
 
 namespace lob {
 
@@ -27,14 +27,14 @@ namespace lob {
         }
 		bool limit_buy(uint64_t id, int64_t price, uint32_t quantity) {
 
-			uint32_t remaining_qty = try_match<Side::Buy>(price, quantity, id);
+			uint32_t remaining_qty = try_match(price, quantity, id, asks, Side::Buy);
             if (remaining_qty == 0)return false;
 			bids.add(id, price, remaining_qty);
             return true;
 		}
         bool limit_sell(uint64_t id, int64_t price, uint32_t quantity) {
 
-			uint32_t remaining_qty = try_match<Side::Sell>(price, quantity, id);
+			uint32_t remaining_qty = try_match(price, quantity, id, bids, Side::Sell);
             if (remaining_qty == 0)return false;
 			asks.add(id, price, remaining_qty);
             return true;
@@ -48,17 +48,22 @@ namespace lob {
         }
 
 	private:
-        template<Side side>
-        uint32_t try_match(int64_t price, uint32_t quantity, uint64_t id) {
-            auto& opposite_store = (side == Side::Buy) ? asks : bids;
+        uint32_t try_match(int64_t price, uint32_t quantity, uint64_t id, auto& opposite_store, Side side) {
+
 
             while (quantity > 0) {
-                Order* opposite = (side == Side::Buy) ? opposite_store.getCheapest() : opposite_store.getDearest();
+                uint64_t t_entry = get_ticks();
+
+                Order* opposite = nullptr;
+                if (side == Side::Buy) opposite = opposite_store.getCheapest();
+                else opposite = opposite_store.getDearest();
 
                 if (!opposite) break;
 
                 bool price_match = (side == Side::Buy) ? (price >= opposite->price) : (price <= opposite->price);
                 if (!price_match) break;
+
+                uint64_t t_match = get_ticks();
 
                 uint64_t taker_id = opposite->id;
 
@@ -73,16 +78,28 @@ namespace lob {
                     opposite->quantity -= match_qty; 
                 }
                 
+
                 
                 auto* event_slot = trade_queue.prepare_push();
 
-                while (event_slot == nullptr)[[unlikely]] {
+                while (event_slot == nullptr) {
                     event_slot = trade_queue.prepare_push();
-                    //break;
+                    
                 }
 
+                uint64_t t_queue = get_ticks();
+
                 if (event_slot != nullptr) {
-                    event_slot->fill<side>(id, taker_id, price, match_qty, free_trade_id++);
+
+
+                   
+                    uint32_t dt_match = static_cast<uint32_t>(t_match - t_entry); // Чистое время матчинга
+                    uint32_t dt_queue = static_cast<uint32_t>(t_queue - t_match);
+
+                    //event_slot->fill<side>(id, taker_id, price, match_qty, free_trade_id++, t_entry, dt_match, dt_queue);
+                    event_slot->t_entry = t_entry;
+                    event_slot->dt_match = dt_match;
+                    event_slot->dt_queue = dt_queue;
                     trade_queue.commit_push();
                 }
                 // Вывод трейда (Lock-free очередь)

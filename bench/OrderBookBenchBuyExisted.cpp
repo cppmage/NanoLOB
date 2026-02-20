@@ -19,8 +19,9 @@ void consumer(std::stop_token stoken, queue_t& queue) {
     }
 }
 
+lob::TradeEventsQueue queue;
 static void BM_OrderBookRealMatchingV1(benchmark::State& state) {
-    lob::TradeEventsQueue queue;
+    
     std::jthread jtc(consumer<lob::TradeEventsQueue>, std::ref(queue));
 
     lob::OrderBook<0, 1000000, 100> book(queue);
@@ -83,14 +84,20 @@ void pin_thread_to_core(int core_id) {
 #endif
 }
 
+
+
+
+
 static lob::TradeEventsQueue queue1;
-static lob::OrderBook<0, 1000000, 1> book(queue1);
+
+static lob::OrderBook<0, 10000, 1> book(queue1);
 
 static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
     
     
-    lob::WALQueue wal_queue("BENCH_WAL.bin");
-    lob::Logger logger(queue1, wal_queue);
+    lob::WALQueue wal_queue("BENCHV2_WAL_EVENTS.bin");
+    lob::WALSnapshotStatsQueue wal_snapshot_queue("BENCHV2_WAL_SNAPSHOT.bin");
+    lob::Logger logger(queue1, wal_queue, wal_snapshot_queue);
     lob::ConsoleOutput output(wal_queue);
 
     std::jthread jt1([&logger](std::stop_token st) {
@@ -108,8 +115,8 @@ static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
     std::vector<int64_t> buy_prices(N);
     std::vector<int64_t> sell_prices(N);
     std::mt19937 gen(42);
-    std::uniform_int_distribution<int64_t> dist_buy(400, 500);
-    std::uniform_int_distribution<int64_t> dist_sell(501, 600);
+    std::uniform_int_distribution<int64_t> dist_buy(50, 3010);
+    std::uniform_int_distribution<int64_t> dist_sell(302, 6000);
 
     for (size_t i = 0; i < N; ++i) {
         buy_prices[i] = dist_buy(gen);
@@ -117,9 +124,10 @@ static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
     }
 
     uint64_t id = 1;
+    int base_price = 5000;
     for (int i = 0; i < 1000000; i++) {
-        book.limit_sell(id++, 100000 + (i % 100000), 10);
-        book.limit_buy(id++, 100000 - (i % 100000), 10);
+        book.limit_sell(id++, base_price + (i % base_price), 10);
+        book.limit_buy(id++, base_price - (i % base_price), 10);
     }
 
     size_t iter = 0;
@@ -145,8 +153,9 @@ static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
 
 
     state.SetItemsProcessed(state.iterations());
+    int i = 0;
 }
 
 
-BENCHMARK(BM_OrderBookRealMatchingV1)->Iterations(1000000);
-//BENCHMARK(BM_OrderBookRealMatchingV2)->Iterations(1000000);
+//BENCHMARK(BM_OrderBookRealMatchingV1)->Iterations(1000000);
+BENCHMARK(BM_OrderBookRealMatchingV2)->Iterations(1000000);

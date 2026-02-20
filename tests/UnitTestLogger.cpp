@@ -18,8 +18,8 @@ TEST_F(LoggerTest, AddThenLaunchThenCheack) {
     const int test_size = 16;
     TradeEventsQueue queue;
     WALQueue wal("logger_test.bin");
-
-    Logger logger(queue, wal);
+    WALSnapshotStatsQueue queue1("logger_test_snapshot.bin");
+    Logger logger(queue, wal, queue1);
 
     std::vector<TradeEvent> events;
     std::vector<TradeEvent> result;

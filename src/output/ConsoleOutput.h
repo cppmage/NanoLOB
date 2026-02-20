@@ -18,9 +18,8 @@ namespace lob {
 			auto tp = system_clock::time_point(duration_cast<system_clock::duration>(ns));
 
 			std::print(
-				"[{:%H:%M:%S}.{:09}] ID:{:<8} | {:<4} | P:{:>10} | Q:{:>6} | T:{} M:{}\n",
-				tp,                           
-				e.timestamp % 1'000'000'000, 
+				"[{:%H:%M:%S}] ID:{:<8} | {:<4} | P:{:>10} | Q:{:>6} | T:{} M:{}\n",
+				tp,                            
 				e.trade_id,
 				(e.taker_side == Side::Buy ? "BUY" : "SELL"),
 				e.price,

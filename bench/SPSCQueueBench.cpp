@@ -380,6 +380,9 @@ void BM_CompareWithStdQueue(benchmark::State& state) {
 }
 
 // ===== Регистрация бенчмарков =====
+#ifdef queue_check
+
+ // need
 
 // Однопоточные тесты производительности
 BENCHMARK_TEMPLATE(BM_Push, QueueSmall)->Threads(1)->Iterations(1000000);
@@ -435,3 +438,4 @@ BENCHMARK(BM_CompareWithStdQueue)
 ->Iterations(1000000);
 
 BENCHMARK_MAIN();
+#endif

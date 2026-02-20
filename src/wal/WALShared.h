@@ -105,6 +105,11 @@ namespace lob {
 
 			return try_push(reinterpret_cast<const std::byte*>(&obj), sizeof(T));
 		}
+		template<typename T>
+		bool try_push_batch(const T* ptr, size_t n) {
+
+			return try_push(reinterpret_cast<const std::byte*>(ptr), sizeof(T)*n);
+		}
 
 		template<typename T>
 		bool try_pop_object(T& obj) {
@@ -119,6 +124,7 @@ namespace lob {
 
 	};
 
-	using WALQueue = WALShared<25>;
+	using WALQueue = WALShared<27>;
+	using WALSnapshotStatsQueue = WALShared<23>;
 }
 

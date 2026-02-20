@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Добавьте источник в исполняемый файл этого проекта.
 add_executable (NanoLOB "src/main.cpp" "src/record_type/Order.h" "src/bucket/Bucket.h" "src/bitset/Bitset.h" "src/store/OrderStore.h"
-"src/OrderBook/OrderBook.h" "src/allocators/ObjectPool.h" "src/lockfree/SPSCQueue.h" "src/logger/Logger.h" "src/TradeEvent/TradeEvent.h" "src/wal/WALShared.h" "src/other/Other.h" "src/output/ConsoleOutput.h")
+"src/OrderBook/OrderBook.h" "src/allocators/ObjectPool.h" "src/lockfree/SPSCQueue.h" "src/logger/Logger.h" "src/TradeEvent/TradeEvent.h" "src/wal/WALShared.h" "src/other/Other.h" "src/output/ConsoleOutput.h" "src/stats/CommonStats.h" "src/stats/PercentileStats.h" "src/stats/StatsTransfer.h" "src/time/Time.h")
 
 # 1. Look for libs
 find_package(absl REQUIRED)
@@ -27,10 +27,23 @@ find_package(benchmark REQUIRED)
 add_library(lob_config INTERFACE)
 
 target_include_directories(lob_config INTERFACE src)
+
+add_library(lob_opts INTERFACE)
+if(MSVC)
+    target_compile_options(lob_opts INTERFACE 
+        $<$<CONFIG:Release>:/O2 /Ot /Oi /arch:AVX2 /GL /GT>
+    )
+    target_link_options(lob_opts INTERFACE
+        $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>
+    )
+endif()
+
 target_link_libraries(lob_config INTERFACE 
     absl::flat_hash_map 
     absl::node_hash_map 
     Boost::boost
+
+    lob_opts
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE lob_config)
@@ -43,14 +56,18 @@ target_include_directories(NanoLOB PRIVATE
     src/allocators
 )
 
+
+
 if(MSVC)
     # /O2 - максимальная скорость
     # /Ot - приоритет скорости над размером кода
     # /arch:AVX2 - включает быстрый поиск в мапе (если проц тянет)
     # /Oi - включает интринсики (встроенные функции процессора)
     #target_compile_options(${PROJECT_NAME} PRIVATE /O2 /arch:AVX2)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
+    add_compile_options("$<$<CONFIG:Release>:/O2;/Ot;/Oi;/arch:AVX2;/Gy>")
+    
+    # Отключаем проверки безопасности, которые тормозят атомики и итераторы
+    #add_definitions(-D_ITERATOR_DEBUG_LEVEL=0) 
 endif()
 
 
@@ -65,3 +82,4 @@ target_link_libraries(unit_tests PRIVATE lob_config GTest::gtest_main)
 # Benchs 
 add_executable(benchmarks "bench/OrderBookBench.cpp" "bench/OrderBookBenchBuyExisted.cpp" "bench/SPSCQueueBench.cpp")
 target_link_libraries(benchmarks PRIVATE lob_config benchmark::benchmark_main)
+
