@@ -57,6 +57,6 @@ namespace lob {
 		}
 	};
 
-	using TradeEventsQueue = SPSCQueue<TradeEvent, 9>;
+	using TradeEventsQueue = SPSCQueue<TradeEvent, 12>;
 
 }

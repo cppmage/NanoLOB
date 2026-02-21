@@ -1,5 +1,5 @@
 ﻿#include <gtest/gtest.h>
-#include "wal/WALShared.h" // Путь к вашему классу
+#include "wal/WALShared.h" 
 #include <thread>
 #include <vector>
 #include "TradeEvent/TradeEvent.h"

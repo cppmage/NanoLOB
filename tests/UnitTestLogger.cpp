@@ -10,9 +10,6 @@ protected:
     
 };
 
-
-
-
 TEST_F(LoggerTest, AddThenLaunchThenCheack) {
     
     const int test_size = 16;

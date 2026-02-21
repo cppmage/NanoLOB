@@ -32,15 +32,15 @@ namespace lob {
 		
 
 		interprocess::managed_mapped_file mfile;
-
 		WALHeader* header;
 		std::byte* buffer;
+		
 	public:
 		WALShared(const char* filename = WAL_FILE_NAME) : mfile(interprocess::open_or_create, filename, WAL_DATA_SIZE + HEADER_SIZE + 1024), header(nullptr), buffer(nullptr){
 			
+			
 			header = mfile.find_or_construct<WALHeader>("Header")();
 
-			
 
 			buffer = mfile.find_or_construct<std::byte>("Data")[WAL_DATA_SIZE]();
 
@@ -49,6 +49,10 @@ namespace lob {
 				(void)b;
 			}
 
+		}
+		~WALShared() {
+			header->head = 0;
+			header->tail = 0;
 		}
 	private:
 		bool try_push(const std::byte* src, size_t len) {
@@ -124,7 +128,7 @@ namespace lob {
 
 	};
 
-	using WALQueue = WALShared<27>;
+	using WALQueue = WALShared<29>;
 	using WALSnapshotStatsQueue = WALShared<23>;
 }
 

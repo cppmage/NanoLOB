@@ -29,7 +29,7 @@ namespace lob {
 
 		}
         void process(std::stop_token stoken) {
-            static constexpr size_t BATCH_SIZE = 64; 
+            static constexpr size_t BATCH_SIZE = 32; 
             std::array<TradeEvent, BATCH_SIZE> buffer;
             size_t n = 0;
 

@@ -7,10 +7,9 @@ using namespace lob;
 
 class BucketTest : public ::testing::Test {
 protected:
-    // Тут инициализируешь свой PMR аллокатор и стакан
     Bucket bucket;
 };
-
+// deprecated
 TEST_F(BucketTest, AddAndCancelOrder) {
     
 

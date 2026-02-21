@@ -80,6 +80,9 @@ target_include_directories(unit_tests PRIVATE
 target_link_libraries(unit_tests PRIVATE lob_config GTest::gtest_main)
 
 # Benchs 
-add_executable(benchmarks "bench/OrderBookBench.cpp" "bench/OrderBookBenchBuyExisted.cpp" "bench/SPSCQueueBench.cpp")
+add_executable(benchmarks "bench/OrderStoreBench.cpp" "bench/SPSCQueueBench.cpp")
 target_link_libraries(benchmarks PRIVATE lob_config benchmark::benchmark_main)
+
+add_executable(benchmark_orderbook "bench/OrderBookBenchBuyExisted.cpp")
+target_link_libraries(benchmark_orderbook PRIVATE lob_config benchmark::benchmark_main)
 
