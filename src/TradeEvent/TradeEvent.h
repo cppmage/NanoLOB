@@ -32,8 +32,8 @@ namespace lob {
 		{
 
 		}
-		template<Side side>
-		void fill(uint64_t maker_order_id_, uint64_t taker_order_id_, 
+		
+		void fill(Side side, uint64_t maker_order_id_, uint64_t taker_order_id_,
 			int64_t  price_, uint32_t quantity_, uint32_t trade_id_, uint64_t t_entry_, uint32_t dt_match_, uint32_t dt_queue_) {
 			timestamp = lob::get_ticks();
 			taker_side = side;
@@ -57,6 +57,6 @@ namespace lob {
 		}
 	};
 
-	using TradeEventsQueue = SPSCQueue<TradeEvent, 16>;
+	using TradeEventsQueue = SPSCQueue<TradeEvent, 9>;
 
 }

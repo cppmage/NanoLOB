@@ -29,12 +29,11 @@ namespace lob {
 
 		}
         void process(std::stop_token stoken) {
-            static constexpr size_t BATCH_SIZE = 128; // Увеличь до 128
+            static constexpr size_t BATCH_SIZE = 64; 
             std::array<TradeEvent, BATCH_SIZE> buffer;
             size_t n = 0;
 
             while (!stoken.stop_requested()) {
-                // 1. Жадное выгребание (освобождаем стакан ПЕРВЫМ делом)
                 while (n < BATCH_SIZE) {
                     if (auto* p = trade_queue.prepare_pop()) {
                         buffer[n++] = *p;
@@ -46,14 +45,11 @@ namespace lob {
                 if (n > 0) {
                     uint64_t t_log = get_ticks();
 
-                    // 2. Статистика (L1-стек, очень быстро)
                     for (size_t i = 0; i < n; ++i) {
                         common_stats.update(buffer[i], t_log);
                         percentile_stats.update(buffer[i].dt_match);
                     }
 
-                    // 3. Пакетная запись (Самое важное!)
-                    // Вместо цикла с try_push_object сделай один memcpy в mmap
                     if (!shared_file.try_push_batch(buffer.data(), n)) {
                         while (!shared_file.try_push_batch(buffer.data(), n)) {
                             CPU_PAUSE();

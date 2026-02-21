@@ -6,8 +6,6 @@
 
 namespace lob {
 
-	
-
 	template<
 		size_t min_price, 
 		size_t max_price, 
@@ -82,24 +80,21 @@ namespace lob {
                 
                 auto* event_slot = trade_queue.prepare_push();
 
-                while (event_slot == nullptr) {
+                while (event_slot == nullptr)[[likely]] {
                     event_slot = trade_queue.prepare_push();
-                    
                 }
 
                 uint64_t t_queue = get_ticks();
 
                 if (event_slot != nullptr) {
 
-
-                   
-                    uint32_t dt_match = static_cast<uint32_t>(t_match - t_entry); // Чистое время матчинга
+                    uint32_t dt_match = static_cast<uint32_t>(t_match - t_entry); 
                     uint32_t dt_queue = static_cast<uint32_t>(t_queue - t_match);
 
-                    //event_slot->fill<side>(id, taker_id, price, match_qty, free_trade_id++, t_entry, dt_match, dt_queue);
-                    event_slot->t_entry = t_entry;
-                    event_slot->dt_match = dt_match;
-                    event_slot->dt_queue = dt_queue;
+                    event_slot->fill(side, id, taker_id, price, match_qty, free_trade_id++, t_entry, dt_match, dt_queue);
+                    //event_slot->t_entry = t_entry;
+                    //event_slot->dt_match = dt_match;
+                    //event_slot->dt_queue = dt_queue;
                     trade_queue.commit_push();
                 }
                 // Вывод трейда (Lock-free очередь)

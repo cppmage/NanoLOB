@@ -41,7 +41,7 @@ namespace lob {
 				if (file_queue.try_pop_object(event)) {
 					printTradeEvent(event);
 				}
-				CPU_PAUSE();
+				smart_pause();
 
 			}
 

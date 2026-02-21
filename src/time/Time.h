@@ -21,12 +21,10 @@ namespace lob {
         uint64_t dt_tsc;
 
         void calibrateTSC() {
-            // Засекаем базу
             auto t1 = std::chrono::system_clock::now();
             start_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t1.time_since_epoch()).count();
             start_tsc = get_ticks();
 
-            // Калибруем коэффициент (ждем 100мс)
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
             auto t2 = std::chrono::system_clock::now();

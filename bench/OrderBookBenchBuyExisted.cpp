@@ -90,7 +90,7 @@ void pin_thread_to_core(int core_id) {
 
 static lob::TradeEventsQueue queue1;
 
-static lob::OrderBook<0, 10000, 1> book(queue1);
+static lob::OrderBook<0, 1000000, 1> book(queue1);
 
 static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
     
@@ -115,8 +115,8 @@ static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
     std::vector<int64_t> buy_prices(N);
     std::vector<int64_t> sell_prices(N);
     std::mt19937 gen(42);
-    std::uniform_int_distribution<int64_t> dist_buy(50, 3010);
-    std::uniform_int_distribution<int64_t> dist_sell(302, 6000);
+    std::uniform_int_distribution<int64_t> dist_buy(50, 500000);
+    std::uniform_int_distribution<int64_t> dist_sell(500001, 99999);
 
     for (size_t i = 0; i < N; ++i) {
         buy_prices[i] = dist_buy(gen);
@@ -124,7 +124,7 @@ static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
     }
 
     uint64_t id = 1;
-    int base_price = 5000;
+    int base_price = 500000;
     for (int i = 0; i < 1000000; i++) {
         book.limit_sell(id++, base_price + (i % base_price), 10);
         book.limit_buy(id++, base_price - (i % base_price), 10);

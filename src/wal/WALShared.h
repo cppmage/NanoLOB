@@ -107,7 +107,7 @@ namespace lob {
 		}
 		template<typename T>
 		bool try_push_batch(const T* ptr, size_t n) {
-
+			static_assert(std::is_trivially_copyable_v<T>, "Type must be trivially copyable!");
 			return try_push(reinterpret_cast<const std::byte*>(ptr), sizeof(T)*n);
 		}
 
