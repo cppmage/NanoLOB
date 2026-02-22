@@ -51,8 +51,10 @@ namespace lob {
 
 		}
 		~WALShared() {
-			header->head = 0;
-			header->tail = 0;
+			if constexpr (RESET_WAL_FILES) {
+				header->head = 0;
+				header->tail = 0;
+			}
 		}
 	private:
 		bool try_push(const std::byte* src, size_t len) {

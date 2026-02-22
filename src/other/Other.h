@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <chrono>
+#include <cstddef>
 #define NOMINMAX
 
 namespace lob {
@@ -43,7 +44,7 @@ inline void smart_pause() noexcept {
 #include <sched.h>
 #endif
 
-void pin_thread_to_core(int core_id) {
+static void pin_thread_to_core(int core_id) {
 #ifdef _WIN32
     HANDLE thread = GetCurrentThread();
     DWORD_PTR mask = (static_cast<DWORD_PTR>(1) << core_id);

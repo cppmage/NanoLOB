@@ -1,6 +1,6 @@
 ﻿#include <benchmark/benchmark.h>
 #include "store/OrderStore.h"
-#include "output/ConsoleOutput.h"
+#include "output/Outputer.h"
 #include "logger/Logger.h"
 
 #include "OrderBook/OrderBook.h"
@@ -26,14 +26,14 @@ static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
     lob::WALQueue wal_queue("BENCHV2_WAL_EVENTS.bin");
     lob::WALSnapshotStatsQueue wal_snapshot_queue("BENCHV2_WAL_SNAPSHOT.bin");
     lob::Logger logger(trade_queue, wal_queue, wal_snapshot_queue);
-    lob::ConsoleOutput output(wal_queue);
+    lob::ConsoleOutput<lob::OutputOptions::TO_FILE, lob::OutputOptions::TO_FILE> output(wal_queue, wal_snapshot_queue);
 
     std::jthread jt1([&logger](std::stop_token st) {
-        pin_thread_to_core(2);
+        pin_thread_to_core(1);
         logger.process(st);
         });
     std::jthread jt2([&output](std::stop_token st) {
-        pin_thread_to_core(1);
+        pin_thread_to_core(4);
         output.process(st);
         });
 

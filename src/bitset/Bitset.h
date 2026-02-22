@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <array>
 #include <new>
-
+#include <cstddef>
 #include <stdint.h>
 
 #ifdef _MSC_VER

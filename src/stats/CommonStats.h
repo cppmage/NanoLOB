@@ -3,12 +3,23 @@
 #include <TradeEvent/TradeEvent.h>
 #include <print>
 #include <time/Time.h>
-
+#include <cstdio>
 
 namespace lob {
+    static constexpr const char* common_output_stats_sample = "Factor: {}, CPU GHz: {:.6f}\n"
+        "--- Performance Report (last {} trades) ---\n"
+        "Avg Match:   {:>6} ns\n"
+        "Avg Stall:   {:>6} ns (Queue Wait)\n"
+        "Avg E2E:     {:>6} ns (Total Path)\n"
+        "Avg Jitter:  {:>6} ns\n"
+        "-------------------------------------------\n";
+
     class CommonStats {
 
     private:
+        
+
+
         uint64_t total_match_dt = 0;
         uint64_t total_queue_dt = 0;
         uint64_t total_e2e_dt = 0;
@@ -35,22 +46,43 @@ namespace lob {
             count++;
         }
 
-        void print_report(const FastTime& time) {
-            if (count == 0) return;
-
+        void print_report(const FastTime& time, FILE* file) {
+            if (count == 0)return;
             uint64_t avg_match_ticks = total_match_dt / count;
             uint64_t avg_stall_ticks = total_queue_dt / count;
             uint64_t avg_e2e_ticks = total_e2e_dt / count;
             uint64_t avg_jitter_ticks = total_jitter / count;
 
-            std::print("Factor: {}, CPU GHz: {}\n", time.ns_per_tsc_factor, (double)time.dt_tsc / time.dt_ns);
-            std::print("--- Performance Report (last {} trades) ---\n", count);
-            std::print("Avg Match:   {:>6} ns\n", time.duration_to_ns(avg_match_ticks));
-            std::print("Avg Stall:   {:>6} ns (Queue Wait)\n", time.duration_to_ns(avg_stall_ticks));
-            std::print("Avg E2E:     {:>6} ns (Total Path)\n", time.duration_to_ns(avg_e2e_ticks));
-            std::print("Avg Jitter:  {:>6} ns\n", time.duration_to_ns(avg_jitter_ticks));
-            std::print("-------------------------------------------\n");
+            std::print(file,
+                common_output_stats_sample,
+                time.ns_per_tsc_factor,
+                static_cast<double>(time.dt_tsc) / time.dt_ns,
+                count,
+                time.duration_to_ns(avg_match_ticks),
+                time.duration_to_ns(avg_stall_ticks),
+                time.duration_to_ns(avg_e2e_ticks),
+                time.duration_to_ns(avg_jitter_ticks)
+            );
         }
+        void print_report(const FastTime& time) {
+            if (count == 0)return;
+            uint64_t avg_match_ticks = total_match_dt / count;
+            uint64_t avg_stall_ticks = total_queue_dt / count;
+            uint64_t avg_e2e_ticks = total_e2e_dt / count;
+            uint64_t avg_jitter_ticks = total_jitter / count;
+
+            std::print(
+                common_output_stats_sample,
+                time.ns_per_tsc_factor,
+                static_cast<double>(time.dt_tsc) / time.dt_ns,
+                count,
+                time.duration_to_ns(avg_match_ticks),
+                time.duration_to_ns(avg_stall_ticks),
+                time.duration_to_ns(avg_e2e_ticks),
+                time.duration_to_ns(avg_jitter_ticks)
+            );
+        }
+
 
         void reset() {
             total_match_dt = 0;

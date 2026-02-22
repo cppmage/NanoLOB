@@ -6,14 +6,19 @@
 #include <thread>
 #include "stats/StatsTransfer.h"
 #include "time/Time.h"
+#include "time/TicksTimer.h"
 
 namespace lob {
+
+    static const uint64_t ns_per_snapshot = NANOSECONDS_PER_STATS_SNAPSHOT;
 
 	class Logger {
 	private:
 
+
 		StatsTransfer transfer;
 		FastTime time;
+        TicksTimer timer;
 
 		TradeEventsQueue& trade_queue;
 		WALQueue& shared_file;
@@ -21,12 +26,16 @@ namespace lob {
 		CommonStats& common_stats;
 		PercentileStats& percentile_stats;
 
+        uint64_t ticks_for_snapshot_timer;
+
 	public:
 		Logger(TradeEventsQueue& trade_queue_, WALQueue& shared_file_,
 			WALSnapshotStatsQueue& shared_snapshots_file_) : trade_queue(trade_queue_), shared_file(shared_file_),
 			common_stats(transfer.common_stats), percentile_stats(transfer.percentile_stats),
-			shared_snapshots_file(shared_snapshots_file_){
-
+			shared_snapshots_file(shared_snapshots_file_)
+        {
+            ticks_for_snapshot_timer = time.ns_to_ticks(ns_per_snapshot);
+            timer.set(ticks_for_snapshot_timer);
 		}
         void process(std::stop_token stoken) {
             static constexpr size_t BATCH_SIZE = 32; 
@@ -61,7 +70,19 @@ namespace lob {
                 else {
                     CPU_PAUSE();
                 }
+
+                if (timer.ensure()) {
+                    if (shared_snapshots_file.try_push_object(transfer)) [[likely]] {
+                        if constexpr (CLEAR_LOGGER_STATS_AFTER_STAPSHOT) {
+                            transfer.reset();
+                        }
+                        timer.set(ticks_for_snapshot_timer);
+                    }
+                }
+            
+
             }
+
         }
 		~Logger() {
 			common_stats.print_report(time);

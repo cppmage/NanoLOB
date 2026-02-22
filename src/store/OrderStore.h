@@ -7,6 +7,8 @@
 #include <allocators/ObjectPool.h>
 
 namespace lob {
+
+
 	template<size_t min_price, size_t max_price, size_t bucket_size, size_t arr_size = (max_price - min_price+ bucket_size) / bucket_size>
 	class OrderStore {
 	private:
@@ -22,7 +24,7 @@ namespace lob {
 			return (static_cast<size_t>(price) - min_price) / bucket_size;
 		}
 	public:
-		OrderStore(size_t capacity = 2100000) : pool(capacity){
+		OrderStore(size_t capacity = MAX_ORDERS) : pool(capacity){
 			orders_registry.reserve(capacity);
 		}
 		void add(uint64_t id, int64_t price, uint32_t quantity) {

@@ -11,7 +11,10 @@ namespace lob {
 	public:
 		CommonStats common_stats;
 		PercentileStats percentile_stats;
-
+		void reset() noexcept {
+			common_stats.reset();
+			percentile_stats.reset();
+		}
 	};
 
 }

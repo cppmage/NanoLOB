@@ -1,8 +1,10 @@
 ﻿#pragma once
 #include <chrono>
 #include <thread>
-#include <intrin.h>
 
+#if defined(_MSC_VER)
+#include <intrin.h>
+#endif
 
 namespace lob {
 
@@ -14,6 +16,8 @@ namespace lob {
     class FastTime {
     public:
         uint64_t ns_per_tsc_factor;
+        uint64_t tsc_per_nas_factor;
+
         uint64_t start_tsc;
         uint64_t start_ns;
         static constexpr int shift = 32;
@@ -32,7 +36,9 @@ namespace lob {
 
             dt_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
             dt_tsc = r2 - start_tsc;
+
             ns_per_tsc_factor = (dt_ns << shift) / dt_tsc;
+            tsc_per_nas_factor = (dt_tsc << shift) / dt_ns;
         }
 
     public:
@@ -44,6 +50,10 @@ namespace lob {
 
         inline uint64_t tsc_to_absolute_ns(uint64_t tsc) const noexcept {
             return start_ns + duration_to_ns(tsc - start_tsc);
+        }
+
+        inline uint64_t ns_to_ticks(uint64_t ns) const noexcept {
+            return (ns* tsc_per_nas_factor)>>shift;
         }
     };
 

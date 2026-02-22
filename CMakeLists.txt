@@ -9,13 +9,24 @@ endif()
 
 project ("NanoLOB" CXX)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+endif()
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-# Добавьте источник в исполняемый файл этого проекта.
-add_executable (NanoLOB "src/main.cpp" "src/record_type/Order.h" "src/bucket/Bucket.h" "src/bitset/Bitset.h" "src/store/OrderStore.h"
-"src/OrderBook/OrderBook.h" "src/allocators/ObjectPool.h" "src/lockfree/SPSCQueue.h" "src/logger/Logger.h" "src/TradeEvent/TradeEvent.h" "src/wal/WALShared.h" "src/other/Other.h" "src/output/ConsoleOutput.h" "src/stats/CommonStats.h" "src/stats/PercentileStats.h" "src/stats/StatsTransfer.h" "src/time/Time.h")
+# Constants
+add_compile_definitions(MAX_ORDERS=2'100'000ULL) # Actually 2*N, N for bids and N for asks
+add_compile_definitions(NANOSECONDS_PER_STATS_SNAPSHOT=2*10'000'000'000ULL)
+add_compile_definitions(RESET_WAL_FILES=true)
+add_compile_definitions(CLEAR_OUTPUT_FILES=true)
+add_compile_definitions(CLEAR_LOGGER_STATS_AFTER_STAPSHOT=false) # False if you want to see full statistics
+
+
+
+add_executable (NanoLOB "src/main.cpp" "src/record_type/Order.h" "src/bucket/Bucket.h" "src/bitset/Bitset.h" "src/store/OrderStore.h""src/OrderBook/OrderBook.h" "src/allocators/ObjectPool.h" "src/lockfree/SPSCQueue.h" "src/logger/Logger.h" "src/TradeEvent/TradeEvent.h" "src/wal/WALShared.h" "src/other/Other.h" "src/output/Outputer.h" "src/stats/CommonStats.h" "src/stats/PercentileStats.h" "src/stats/StatsTransfer.h" "src/time/Time.h" "src/time/TicksTimer.h")
 
 # 1. Look for libs
 find_package(absl REQUIRED)
@@ -23,18 +34,28 @@ find_package(Boost REQUIRED)
 find_package(GTest REQUIRED)
 find_package(benchmark REQUIRED)
 
-# 2. Создаем общую конфигурацию
+# 2. Creating common cfg
 add_library(lob_config INTERFACE)
 
 target_include_directories(lob_config INTERFACE src)
 
 add_library(lob_opts INTERFACE)
-if(MSVC)
+if(NOT MSVC)
     target_compile_options(lob_opts INTERFACE 
-        $<$<CONFIG:Release>:/O2 /Ot /Oi /arch:AVX2 /GL /GT>
+        -O3 
+        -march=native    
+        -fno-plt         
+        -Wno-interference-size 
+        -flto
+    )
+    target_link_options(lob_opts INTERFACE -flto)
+    target_compile_definitions(lob_opts INTERFACE NDEBUG) 
+else()
+    target_compile_options(lob_opts INTERFACE 
+        $<$<CONFIG:Release>:/O2 /Ot /Oi /arch:AVX2 /GL /GT /Zi> 
     )
     target_link_options(lob_opts INTERFACE
-        $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>
+        $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF /DEBUG> 
     )
 endif()
 
@@ -59,15 +80,9 @@ target_include_directories(NanoLOB PRIVATE
 
 
 if(MSVC)
-    # /O2 - максимальная скорость
-    # /Ot - приоритет скорости над размером кода
-    # /arch:AVX2 - включает быстрый поиск в мапе (если проц тянет)
-    # /Oi - включает интринсики (встроенные функции процессора)
-    #target_compile_options(${PROJECT_NAME} PRIVATE /O2 /arch:AVX2)
+    
     add_compile_options("$<$<CONFIG:Release>:/O2;/Ot;/Oi;/arch:AVX2;/Gy>")
     
-    # Отключаем проверки безопасности, которые тормозят атомики и итераторы
-    #add_definitions(-D_ITERATOR_DEBUG_LEVEL=0) 
 endif()
 
 
