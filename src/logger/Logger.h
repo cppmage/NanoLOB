@@ -73,7 +73,7 @@ namespace lob {
 
                 if (timer.ensure()) {
                     if (shared_snapshots_file.try_push_object(transfer)) [[likely]] {
-                        if constexpr (CLEAR_LOGGER_STATS_AFTER_STAPSHOT) {
+                        if constexpr (CLEAR_LOGGER_STATS_AFTER_SNAPSHOT) {
                             transfer.reset();
                         }
                         timer.set(ticks_for_snapshot_timer);

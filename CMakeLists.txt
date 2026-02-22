@@ -22,7 +22,7 @@ add_compile_definitions(MAX_ORDERS=2'100'000ULL) # Actually 2*N, N for bids and 
 add_compile_definitions(NANOSECONDS_PER_STATS_SNAPSHOT=2*10'000'000'000ULL)
 add_compile_definitions(RESET_WAL_FILES=true)
 add_compile_definitions(CLEAR_OUTPUT_FILES=true)
-add_compile_definitions(CLEAR_LOGGER_STATS_AFTER_STAPSHOT=false) # False if you want to see full statistics
+add_compile_definitions(CLEAR_LOGGER_STATS_AFTER_SNAPSHOT=false) # False if you want to see full statistics
 
 
 
@@ -45,11 +45,9 @@ if(NOT MSVC)
         -O3 
         -march=native    
         -fno-plt         
-        -Wno-interference-size 
-        -flto
+        -Wno-interference-size
     )
-    target_link_options(lob_opts INTERFACE -flto)
-    target_compile_definitions(lob_opts INTERFACE NDEBUG) 
+    add_compile_definitions(NDEBUG)
 else()
     target_compile_options(lob_opts INTERFACE 
         $<$<CONFIG:Release>:/O2 /Ot /Oi /arch:AVX2 /GL /GT /Zi> 
