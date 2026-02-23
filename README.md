@@ -11,8 +11,8 @@ High-performance matching engine in C++23, achieving sub-100ns core latency on a
 
 ## 2. Architecture & Design Decisions
 * **`boost::intrusive::list` and `absl::flat_hash_map`**: Provide amortized O(1) "add", "delete", "find".
-* **Hierarchical Bitsets**: Used for best-price discovery. Optimized for L1/L2 cache residency.
-* **Zero-Allocation Path**: No dynamic memory allocation in the hot loops (Object Pooling & Static Arrays).
+* **Hierarchical Bitsets**: Used for best-price discovery. 
+* **Zero-Allocation Path**: No dynamic memory allocation in the hot loops (Object Pooling & Arrays).
 * **Asynchronous Pipeline**:
 `OrderBook -> [SPSC] -> Logger -> [SPSC WAL] -> Outputer`
 * **Lock-free Primitives**: Custom SPSC queues for minimal inter-thread jitter.
