@@ -10,13 +10,16 @@ High-performance matching engine in C++23, achieving sub-100ns core latency on a
 **Note on Benchmarking**: The report shows two consecutive runs. The first (10k levels) serves as a CPU warm-up, stabilizing frequency and caches. The second run demonstrates the engine's performance on 1,000,000 price levels, maintaining sub-microsecond P99.9 latency.
 
 ## 2. Architecture & Design Decisions
-* `boost::intrusive::list` for the price buckets and `absl::flat_hash_map`: Provide amortized O(1) "add", "delete", "find"
-* Hierarchical Bitsets: Used for best-price discovery. Optimized for L1/L2 cache residency.
-* Zero-Allocation Path: No dynamic memory allocation in the hot loops (Object Pooling & Static Arrays).
-* Asynchronous Pipeline:
+* **`boost::intrusive::list` and `absl::flat_hash_map`**: Provide amortized O(1) "add", "delete", "find".
+* **Hierarchical Bitsets**: Used for best-price discovery. Optimized for L1/L2 cache residency.
+* **Zero-Allocation Path**: No dynamic memory allocation in the hot loops (Object Pooling & Static Arrays).
+* **Asynchronous Pipeline**:
 `OrderBook -> [SPSC] -> Logger -> [SPSC WAL] -> Outputer`
-* Lock-free Primitives: Custom SPSC queues for minimal inter-thread jitter.
-* Mechanical Sympathy: Explicit cache-line alignment (`alignas(64)`) and branch prediction hints (`[[likely]]`).
+* **Lock-free Primitives**: Custom SPSC queues for minimal inter-thread jitter.
+* **Mechanical Sympathy**: Explicit cache-line alignment (`alignas(64)`) and branch prediction hints (`[[likely]]`).
+* **Persistence & Recovery (WAL)**: Integrated a Write-Ahead Logging strategy. All incoming events are asynchronously streamed to a persistent segment. This ensures data recoverability and consistency in case of a system crash.
+* **Fault Tolerance & Burst Handling**: The pipeline architecture uses pre-allocated lock-free SPSC queues as high-speed buffers. This provides a safety margin that absorbs traffic spikes without backpressuring the critical matching path.
+
 
 ## 3. Benchmarking Methodology
 * Measured using TSC (Time Stamp Counter) with serialization barriers (rdtscp) to eliminate out-of-order execution noise.
