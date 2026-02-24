@@ -9,6 +9,8 @@ High-performance matching engine in C++23, achieving sub-100ns core latency on a
 
 **Note on Benchmarking**: The report shows two consecutive runs. The first (10k levels) serves as a CPU warm-up, stabilizing frequency and caches. The second run demonstrates the engine's performance on 1,000,000 price levels, maintaining sub-microsecond P99.9 latency.
 
+`This benchmark is located in bench/OrderBookBenchBuyExisted.cpp`
+
 ## 2. Architecture & Design Decisions
 * **`boost::intrusive::list` and `absl::flat_hash_map`**: Provide amortized O(1) "add", "delete", "find".
 * **Hierarchical Bitsets**: Used for best-price discovery. 

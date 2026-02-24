@@ -44,7 +44,7 @@ namespace lob {
 	private:
 		static constexpr size_t size1 = (bits + bits_per_layer - 1) / bits_per_layer;
 		static constexpr size_t size2 = (size1 + bits_per_layer - 1) / bits_per_layer;
-		static constexpr size_t size3 = (size1 + bits_per_layer - 1) / bits_per_layer;
+		static constexpr size_t size3 = (size2 + bits_per_layer - 1) / bits_per_layer; //Someday there will be third level
 
 		alignas(std::hardware_destructive_interference_size) std::array<bit_container, size1> l1_mask;
 		alignas(std::hardware_destructive_interference_size) std::array<bit_container, size2> l2_mask;
