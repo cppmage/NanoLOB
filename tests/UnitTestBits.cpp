@@ -6,7 +6,7 @@ using namespace lob;
 
 class BitsTest : public ::testing::Test {
 protected:
-    Bitset<1290> bits;
+    Bitset<1290, 2> bits;
 };
 
 TEST_F(BitsTest, BitsSetReset) {

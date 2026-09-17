@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+#include <tracy/Tracy.hpp>
 #include <store/OrderStore.h>
 #include <TradeEvent/TradeEvent.h>
 #include <time/Time.h>
@@ -24,14 +24,12 @@ namespace lob {
 
         }
 		bool limit_buy(uint64_t id, int64_t price, uint32_t quantity) {
-
 			uint32_t remaining_qty = try_match(price, quantity, id, asks, Side::Buy);
             if (remaining_qty == 0)return false;
 			bids.add(id, price, remaining_qty);
             return true;
 		}
         bool limit_sell(uint64_t id, int64_t price, uint32_t quantity) {
-
 			uint32_t remaining_qty = try_match(price, quantity, id, bids, Side::Sell);
             if (remaining_qty == 0)return false;
 			asks.add(id, price, remaining_qty);

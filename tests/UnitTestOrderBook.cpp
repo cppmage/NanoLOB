@@ -12,8 +12,11 @@ protected:
     
 };
 
-TEST_F(OrderBookTest, AddAndCancelOrders) {
+TEST_F(OrderBookTest, AddAndCancelOrders1) {
+
+    
     TradeEventsQueue queue;
+
     OrderBook<0, 100, 1> book(queue);
 
     book.limit_buy(1, 100, 4);

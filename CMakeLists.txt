@@ -16,10 +16,22 @@ endif()
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# --- [Tracy] ---
+option(ENABLE_TRACY "Enable Tracy Profiler" ON)
+
+if(ENABLE_TRACY)
+    include(FetchContent)
+    FetchContent_Declare(
+        tracy
+        GIT_REPOSITORY https://github.com/wolfpld/tracy
+        GIT_TAG        v0.13.1 # Фиксированная стабильная версия
+    )
+    FetchContent_MakeAvailable(tracy)
+endif()
 
 # Constants
 add_compile_definitions(MAX_ORDERS=2'100'000ULL) # Actually 2*N, N for bids and N for asks
-add_compile_definitions(NANOSECONDS_PER_STATS_SNAPSHOT=2*10'000'000'000ULL)
+add_compile_definitions(NANOSECONDS_PER_STATS_SNAPSHOT=2*10'000'000ULL)
 add_compile_definitions(RESET_WAL_FILES=true)
 add_compile_definitions(CLEAR_OUTPUT_FILES=true)
 add_compile_definitions(CLEAR_LOGGER_STATS_AFTER_SNAPSHOT=false) # False if you want to see full statistics
@@ -41,20 +53,36 @@ target_include_directories(lob_config INTERFACE src)
 
 add_library(lob_opts INTERFACE)
 if(NOT MSVC)
-    target_compile_options(lob_opts INTERFACE 
-        -O3 
-        -march=native    
-        -fno-plt         
-        -Wno-interference-size
-    )
+    # Настройки для Linux / GCC / Clang (включая WSL2)
+    if(ENABLE_TRACY)
+        target_compile_options(lob_opts INTERFACE 
+            -O3 
+            -ggdb3 
+            -fno-omit-frame-pointer
+            -march=native    
+            -fno-plt         
+            -Wno-interference-size
+        )
+    else()
+        target_compile_options(lob_opts INTERFACE 
+            -ggdb3
+            -Og 
+            -march=native    
+            -fno-plt         
+            -Wno-interference-size
+        )
+    endif()
     add_compile_definitions(NDEBUG)
 else()
+    # Настройки для Windows / MSVC (Visual Studio)
     target_compile_options(lob_opts INTERFACE 
         $<$<CONFIG:Release>:/O2 /Ot /Oi /arch:AVX2 /GL /GT /Zi> 
     )
     target_link_options(lob_opts INTERFACE
         $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF /DEBUG> 
     )
+    # Отключаем отладочные проверки в контейнерах и ассерты для максимальной скорости в Release на Windows
+    add_compile_definitions($<$<CONFIG:Release>:NDEBUG>)
 endif()
 
 target_link_libraries(lob_config INTERFACE 
@@ -66,6 +94,16 @@ target_link_libraries(lob_config INTERFACE
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE lob_config)
+
+if(ENABLE_TRACY)
+    if(NOT MSVC)
+        target_compile_definitions(lob_opts INTERFACE TRACY_ENABLE TRACY_ON_DEMAND TRACY_NO_INVARIANT_CHECK)
+        target_link_libraries(lob_config INTERFACE TracyClient pthread dl)
+    else()
+        target_compile_definitions(lob_opts INTERFACE TRACY_ENABLE TRACY_ON_DEMAND)
+        target_link_libraries(lob_config INTERFACE TracyClient)
+    endif()
+endif()
 
 target_include_directories(NanoLOB PRIVATE 
     src

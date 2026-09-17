@@ -3,6 +3,8 @@
 #include <new>
 #include <cstddef>
 #include <stdint.h>
+#include <tuple>
+#include <utility>
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -39,15 +41,43 @@ namespace lob {
 	#endif
 	}
 
-	template<size_t bits>
+	template<size_t bits, size_t amount_of_levels = 3>
 	class Bitset {
 	private:
 		static constexpr size_t size1 = (bits + bits_per_layer - 1) / bits_per_layer;
 		static constexpr size_t size2 = (size1 + bits_per_layer - 1) / bits_per_layer;
-		static constexpr size_t size3 = (size2 + bits_per_layer - 1) / bits_per_layer; //Someday there will be third level
+		static constexpr size_t size3 = (size2 + bits_per_layer - 1) / bits_per_layer; 
+
+		static constexpr size_t compute_level_size(size_t level, size_t current_bits) {
+			if (level == 0) return current_bits;
+			return compute_level_size(level - 1, (current_bits + bits_per_layer - 1) / bits_per_layer);
+		}
+		static constexpr auto compute_all_sizes() {
+			std::array<size_t, amount_of_levels> sizes{};
+			size_t current = bits;
+			for (size_t i = 0; i < amount_of_levels; i++) {
+				sizes[i] = current;
+				current = (current + bits_per_layer - 1) / bits_per_layer;
+			}
+			return sizes;
+		}
+		static constexpr auto level_sizes = compute_all_sizes();
 
 		alignas(std::hardware_destructive_interference_size) std::array<bit_container, size1> l1_mask;
 		alignas(std::hardware_destructive_interference_size) std::array<bit_container, size2> l2_mask;
+
+		template<size_t Level>
+		using LevelMask = std::array< bit_container, compute_level_size(Level, bits)>;
+
+		template<size_t... Is>
+		static constexpr auto make_mask_tuple(std::index_sequence<Is...>)
+			-> std::tuple<LevelMask<Is>...> {
+			return std::tuple<LevelMask<Is>...>{};
+		}
+
+		using Storage = decltype(make_mask_tuple(std::make_index_sequence<amount_of_levels>{}));
+		Storage data;
+
 	public:
 
 		Bitset() {

@@ -8,11 +8,24 @@
 #include <random>
 #include <thread>
 
+#include <tracy/Tracy.hpp>
 
+bool tracy_flag = true;
 
 template<size_t min_price, size_t max_price>
 static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
 
+#ifdef TRACY_ENABLE
+    if (tracy_flag) {
+        std::cout << "[Tracy] Waiting for profiler connection..." << std::endl;
+        // Этот цикл полностью заморозит программу, пока вы не нажмете "Connect" в Tracy.exe
+        while (!TracyIsConnected) {
+            // Просто ждем коннекта от GUI-клиента Windows
+        }
+        std::cout << "[Tracy] Connected! Running benchmarks..." << std::endl;
+        tracy_flag = false;
+    }
+#endif
 
     //static lob::TradeEventsQueue trade_queue;
     //static lob::OrderBook<min_price, max_price, 1> book(trade_queue);
@@ -60,10 +73,9 @@ static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
 
     size_t iter = 0;
     size_t hot_objects = 0;
-
+    ZoneScopedN("Full_Bench_Run");
     for (auto _ : state) {
         size_t idx = iter % N;
-
         int num0 = book.limit_buy(id++, buy_prices[idx], 5);
         int num1 = book.limit_sell(id++, sell_prices[idx], 5);
         hot_objects += 2;
@@ -86,6 +98,7 @@ static void BM_OrderBookRealMatchingV2(benchmark::State& state) {
 
     state.SetItemsProcessed(hot_objects);
     int i = 0;
+    FrameMark;
 }
 
 

@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+#include <tracy/Tracy.hpp>
 #include <bucket/Bucket.h>
 #include <bitset/Bitset.h>
 #include <array>
@@ -28,7 +28,6 @@ namespace lob {
 			orders_registry.reserve(capacity);
 		}
 		void add(uint64_t id, int64_t price, uint32_t quantity) {
-
 			
 			assert(orders_registry.find(id) == orders_registry.end() && "Duplicate Order ID!");
 

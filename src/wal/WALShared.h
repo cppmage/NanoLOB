@@ -18,7 +18,7 @@ namespace lob {
 	
 	static const char* WAL_FILE_NAME = "wal_buffer.bin";
 
-	template<size_t power_of_two = 20>
+	template<size_t power_of_two = 18>
 	class WALShared {
 	private:
 		static constexpr size_t WAL_DATA_SIZE = (1ULL << power_of_two);
