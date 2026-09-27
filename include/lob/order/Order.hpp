@@ -1,13 +1,14 @@
 ﻿#pragma once
 #include <boost/intrusive/list.hpp>
-
+#include <lob/order/Order_ID_Pack.hpp>
+#include <lob/parameters/parameters.hpp>
 
 using namespace boost;
 
 namespace lob {
 	using order_hook = intrusive::list_base_hook<intrusive::link_mode<intrusive::auto_unlink>>;
 
-	struct alignas(64) Order : public order_hook {
+	struct alignas(cache_line_size) Order : public order_hook {
 	private:
 
 	public:
@@ -21,7 +22,7 @@ namespace lob {
 			return a.id > b.id; 
 		}
 
-		uint64_t id;
+		Order_ID_Pack id;
 		int64_t price;
 		uint32_t quantity;
 		uint32_t executed_qty;
@@ -45,5 +46,5 @@ namespace lob {
 
 	using OrderList = intrusive::list<Order, intrusive::constant_time_size<false>>;
 
-	static_assert(sizeof(Order) == 64, "Order struct must be exactly 64 bytes to fit cache line");
+	static_assert(sizeof(Order) == cache_line_size, "Order struct must fit cache line");
 }
