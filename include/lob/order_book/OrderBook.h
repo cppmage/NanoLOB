@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <store/OrderStore.h>
-#include <TradeEvent/TradeEvent.h>
+#include <trade_event/TradeEvent.h>
 #include <time/Time.h>
 
 namespace lob {

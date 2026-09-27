@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "lockfree/SPSCQueue.h"
-#include "TradeEvent/TradeEvent.h"
+#include "trade_event/TradeEvent.h"
 #include "wal/WALShared.h"
 #include <thread>
 #include "stats/StatsTransfer.h"

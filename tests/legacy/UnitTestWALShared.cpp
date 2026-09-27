@@ -2,7 +2,7 @@
 #include "wal/WALShared.h" 
 #include <thread>
 #include <vector>
-#include "TradeEvent/TradeEvent.h"
+#include "trade_event/TradeEvent.h"
 
 using namespace lob;
 

@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <wal/WALShared.h>
-#include <TradeEvent/TradeEvent.h>
+#include <trade_event/TradeEvent.h>
 #include <stats/StatsTransfer.h>
 #include <format>
 #include <print>

@@ -4,7 +4,7 @@
 #include "logger/Logger.h"
 
 #include "OrderBook/OrderBook.h"
-#include "TradeEvent/TradeEvent.h"
+#include "trade_event/TradeEvent.h"
 #include <random>
 #include <thread>
 
