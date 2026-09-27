@@ -1,33 +1,40 @@
-﻿#pragma once
+#pragma once
 #include <memory>
-#include <vector>
+#include <cstdint>
+#include <bit>
+#include <limits>
+#include <lob/parameters/parameters.hpp>
 
 namespace lob {
-	template<typename T>
+	template<typename T, pool_size_t size, template <typename, pool_size_t> typename FreeList>
 	class ObjectPool {
-
 	private:
+		static_assert(size >= 1, "an empty pool is not useful");
+		static_assert(size < (pool_size_t{1} << (std::numeric_limits<pool_size_t>::digits - 1)),
+		              "size + 1 rounded up to a power of two must fit in pool_size_t");
+
+		static constexpr pool_size_t free_list_size =
+			std::bit_ceil(static_cast<pool_size_t>(size + 1));
+
+		using free_list_t = FreeList<T*, free_list_size>;
+
 		std::unique_ptr<T[]> pool;
-		std::vector<T*> free_list;
-		size_t offset;
-		size_t capacity;
+		std::unique_ptr<free_list_t> free_list;
+		pool_size_t offset;
 	public:
-		ObjectPool(size_t capacity_) : capacity(capacity_), offset(0) {
-			pool = std::make_unique< T[]>(capacity);
-			free_list.reserve(capacity);
-		}
+		ObjectPool()
+			: pool(std::make_unique<T[]>(size)),
+			  free_list(std::make_unique<free_list_t>()),
+			  offset(0) {}
+
 		T* allocate() {
-			if (!free_list.empty()) {
-				T* res = free_list.back();
-				free_list.pop_back();
-				return res;
-			}
-			if (offset >= capacity)return nullptr;
-			return &pool[offset++];
-		}
-		void free(T* ptr) {
-			free_list.push_back(ptr);
+			if (offset < size) return &pool[offset++];
+			if (!free_list->empty()) return free_list->pop();
+			return nullptr;
 		}
 
+		void free(T* ptr) {
+			free_list->push(ptr);
+		}
 	};
 }
