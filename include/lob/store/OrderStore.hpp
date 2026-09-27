@@ -1,50 +1,69 @@
-﻿#pragma once
-
-#include <bucket/Bucket.hpp>
-#include <bitset/Bitset.hpp>
+#pragma once
 #include <array>
-#include "absl/container/flat_hash_map.h"
-#include <allocators/ObjectPool.hpp>
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <lob/parameters/parameters.hpp>
+#include <lob/bucket/Bucket.hpp>
+#include <lob/bitset/Bitset.hpp>
+#include <lob/allocators/ObjectPool.hpp>
+#include <lob/allocators/FIFO_FreeList.hpp>
 
 namespace lob {
 
 
-	template<size_t min_price, size_t max_price, size_t bucket_size, size_t arr_size = (max_price - min_price+ bucket_size) / bucket_size>
+	template<pool_size_t number_of_orders, std::size_t min_price, std::size_t max_price, std::size_t bucket_size>
 	class OrderStore {
 	private:
+		static_assert(number_of_orders <= max_orders_per_lob, "too many orders");
+		static_assert(bucket_size > 0, "bucket_size must be positive");
+		static_assert(min_price <= max_price, "empty price range");
+
+		static constexpr std::size_t arr_size = (max_price - min_price + bucket_size) / bucket_size;
+
+		using pool_t = ObjectPool<Order, number_of_orders, FIFO_FreeList>;
 
 		std::array<Bucket, arr_size> buckets;
 		Bitset<arr_size> bitset;
 
-		absl::flat_hash_map<uint64_t, Order*> orders_registry;
-		
-		ObjectPool<Order> pool;
+		pool_t pool;
 
-		inline size_t calculateBucket(int64_t price) noexcept {
-			return (static_cast<size_t>(price) - min_price) / bucket_size;
+		static bool inRange(int64_t price) noexcept {
+			return price >= static_cast<int64_t>(min_price) &&
+			       price <= static_cast<int64_t>(max_price);
+		}
+
+		static std::size_t calculateBucket(int64_t price) noexcept {
+			return (static_cast<std::size_t>(price) - min_price) / bucket_size;
 		}
 	public:
-		OrderStore(size_t capacity = MAX_ORDERS) : pool(capacity){
-			orders_registry.reserve(capacity);
-		}
-		void add(uint64_t id, int64_t price, uint32_t quantity) {
+		OrderStore() = default;
 
-			
-			assert(orders_registry.find(id) == orders_registry.end() && "Duplicate Order ID!");
+		uint64_t add(int64_t price, uint32_t quantity) noexcept {
+			if (!inRange(price)) {
+				return invalid_order_id;
+			}
 
-			//Order* order = new Order(id, price, quantity, 0);
 			Order* order = pool.allocate();
-			order->id = id;
+			if (order == nullptr) {
+				return invalid_order_id;
+			}
+
+			order->id.position = pool.index_of(order);
+			order->is_active = true;
 			order->price = price;
 			order->quantity = quantity;
+			order->executed_qty = 0;
 			order->timestamp = 0;
 
-			orders_registry.insert({ id, order });
+			uint64_t id = static_cast<uint64_t>(order->id);
 
-			size_t bucket_id = calculateBucket(price);
+			std::size_t bucket_id = calculateBucket(price);
 
 			buckets[bucket_id].add(*order);
 			bitset.set(bucket_id);
+
+			return id;
 		}
 
 		/*
@@ -54,53 +73,51 @@ namespace lob {
 		* 4. Unlink
 		* 5. Cheack is bucket empty
 		*/
-		void cancel(uint64_t id) {
-			
-			auto it = orders_registry.find(id);
-			if (it == orders_registry.end())return;
+		bool cancel(uint64_t id) noexcept {
+			Order* order = get(id);
+			if(order == nullptr){
+				return false;
+			}
 
-			Order* order = it->second;
-
-			orders_registry.erase(it);
-
-			size_t bucket_id = calculateBucket(order->price);
+			std::size_t bucket_id = calculateBucket(order->price);
 			order->unlink();
 			if (buckets[bucket_id].empty()) {
 				bitset.reset(bucket_id);
 			}
-			//delete order;
+
+			order->is_active = false;
+			order->id.epoch++;
 			pool.free(order);
+
+			return true;
 		}
-		Order* getCheapest() {
-			size_t id = bitset.firstNotZeroBit();
+		Order* getCheapest() noexcept {
+			std::size_t id = bitset.firstNotZeroBit();
 			if (id == BITSET_EMPTY_FLAG_VALUE) {
 				return nullptr;
 			}
 			return &buckets[id].getBestOrder();
-
 		}
-		Order* getDearest() {
-			size_t id = bitset.lastNotZeroBit();
+		Order* getDearest() noexcept {
+			std::size_t id = bitset.lastNotZeroBit();
 			if (id == BITSET_EMPTY_FLAG_VALUE) {
 				return nullptr;
 			}
 			return &buckets[id].getWorstOrder();
 
 		}
-		Order* get(uint64_t id) {
-			auto it = orders_registry.find(id);
-			if (it == orders_registry.end())return nullptr;
-			return it->second;
-		}
-		
-
-		
-		~OrderStore() {
-			for (auto& [id, order] : orders_registry) {
-				order->unlink();
-				//delete order;
+		Order* get(uint64_t id) const noexcept {
+			Order_ID_Pack pack(id);
+			if(pack.position >= pool_t::capacity()){
+				return nullptr;
 			}
-			orders_registry.clear();
+			Order* order = pool.get(static_cast<pool_size_t>(pack.position));
+			if(static_cast<uint64_t>(order->id) != id){
+				return nullptr;
+			}
+			return order;
 		}
+
+		//~OrderStore() {}
 	};
 }

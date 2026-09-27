@@ -39,6 +39,6 @@ namespace lob
     static_assert(std::bit_cast<uint64_t>(Order_ID_Pack(1, 1)) ==
                       ((1ULL << order_position_bits) | 1ULL),
                   "bitfield layout is not [EPOCH][POSITION IN POOL]");
-    static_assert(std::bit_cast<uint64_t>(Order_ID_Pack(orders_per_lob, 0)) == orders_per_lob,
+    static_assert(std::bit_cast<uint64_t>(Order_ID_Pack(max_orders_per_lob, 0)) == max_orders_per_lob,
                   "position must occupy the low bits");
 } // namespace lob

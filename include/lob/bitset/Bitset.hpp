@@ -100,7 +100,6 @@ namespace lob {
 
 			bit_container mask = ~(1ULL << bit_offset);
 
-			auto& value = l1_mask[mass_i];
 			l1_mask[mass_i] &= mask;
 
 			if (l1_mask[mass_i] == 0) {

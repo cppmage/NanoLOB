@@ -4,6 +4,7 @@
 #include <bit>
 #include <limits>
 #include <lob/parameters/parameters.hpp>
+#include <lob/allocators/FIFO_FreeList.hpp>
 
 namespace lob {
 	template<typename T, pool_size_t size, template <typename, pool_size_t> typename FreeList>
@@ -36,5 +37,15 @@ namespace lob {
 		void free(T* ptr) {
 			free_list->push(ptr);
 		}
+
+		T* get(pool_size_t id) const noexcept {
+			return &pool[id];
+		}
+
+		pool_size_t index_of(const T* ptr) const noexcept {
+			return static_cast<pool_size_t>(ptr - pool.get());
+		}
+
+		static constexpr pool_size_t capacity() noexcept { return size; }
 	};
 }

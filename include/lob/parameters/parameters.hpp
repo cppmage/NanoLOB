@@ -16,6 +16,8 @@ namespace lob
 
     inline constexpr std::size_t cache_line_size = 64;
 
-    inline constexpr std::size_t orders_per_lob = (1ULL << order_position_bits) - 1;
+    inline constexpr std::size_t max_orders_per_lob = (1ULL << order_position_bits) - 1;
+
+    inline constexpr uint64_t invalid_order_id = UINT64_MAX;
 
 } // namespace lob
