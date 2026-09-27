@@ -1,8 +1,8 @@
 ﻿#include <gtest/gtest.h>
-#include "wal/WALShared.h" 
+#include "wal/WALShared.hpp" 
 #include <thread>
 #include <vector>
-#include "trade_event/TradeEvent.h"
+#include "trade_event/TradeEvent.hpp"
 
 using namespace lob;
 

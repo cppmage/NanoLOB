@@ -1,5 +1,5 @@
 ﻿#include <gtest/gtest.h>
-#include "lockfree/SPSCQueue.h"
+#include "lockfree/SPSCQueue.hpp"
 #include <thread>
 #include <immintrin.h>
 

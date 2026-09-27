@@ -1,10 +1,10 @@
 ﻿#include <benchmark/benchmark.h>
-#include "lockfree/SPSCQueue.h"
+#include "lockfree/SPSCQueue.hpp"
 #include <thread>
 #include <vector>
 #include <atomic>
 #include <chrono>
-#include "other/Other.h"
+#include "other/Other.hpp"
 
 using namespace lob;
 

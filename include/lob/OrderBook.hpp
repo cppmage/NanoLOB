@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include <store/OrderStore.h>
-#include <trade_event/TradeEvent.h>
-#include <time/Time.h>
+#include <store/OrderStore.hpp>
+#include <trade_event/TradeEvent.hpp>
+#include <time/Time.hpp>
 
 namespace lob {
 

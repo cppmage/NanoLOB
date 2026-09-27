@@ -1,10 +1,10 @@
 ﻿#pragma once
 
-#include <bucket/Bucket.h>
-#include <bitset/Bitset.h>
+#include <bucket/Bucket.hpp>
+#include <bitset/Bitset.hpp>
 #include <array>
 #include "absl/container/flat_hash_map.h"
-#include <allocators/ObjectPool.h>
+#include <allocators/ObjectPool.hpp>
 
 namespace lob {
 

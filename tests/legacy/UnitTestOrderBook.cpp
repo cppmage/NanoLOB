@@ -1,8 +1,8 @@
 ﻿#include <gtest/gtest.h>
 #include <memory>
 #include <vector>
-#include "OrderBook/OrderBook.h"
-#include "lockfree/SPSCQueue.h"
+#include "OrderBook/OrderBook.hpp"
+#include "lockfree/SPSCQueue.hpp"
 
 
 using namespace lob;

@@ -1,6 +1,6 @@
 ﻿#include <gtest/gtest.h>
-#include "allocators/ObjectPool.h"
-#include "record_type/Order.h"
+#include "allocators/ObjectPool.hpp"
+#include "order/Order.hpp"
 #include <random>
 
 

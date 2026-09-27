@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <cstdint>
-#include <trade_event/TradeEvent.h>
+#include <trade_event/TradeEvent.hpp>
 #include <print>
-#include <time/Time.h>
+#include <time/Time.hpp>
 #include <cstdio>
 
 namespace lob {

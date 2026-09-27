@@ -1,5 +1,5 @@
 ﻿#include <gtest/gtest.h>
-#include "logger/Logger.h"
+#include "logger/Logger.hpp"
 #include <thread>
 #include <immintrin.h>
 

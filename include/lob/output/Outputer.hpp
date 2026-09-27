@@ -1,15 +1,15 @@
 ﻿#pragma once
 
 #include <iostream>
-#include <wal/WALShared.h>
-#include <trade_event/TradeEvent.h>
-#include <stats/StatsTransfer.h>
+#include <wal/WALShared.hpp>
+#include <trade_event/TradeEvent.hpp>
+#include <stats/StatsTransfer.hpp>
 #include <format>
 #include <print>
 #include <chrono>
 #include <cstdio>
 #include <memory>
-#include <time/Time.h>
+#include <time/Time.hpp>
 namespace lob {
 
 	enum class OutputOptions {

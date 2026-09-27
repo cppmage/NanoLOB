@@ -1,7 +1,7 @@
 ﻿#include <gtest/gtest.h>
 #include <memory>
 #include <vector>
-#include "store/OrderStore.h"
+#include "store/OrderStore.hpp"
 
 using namespace lob;
 

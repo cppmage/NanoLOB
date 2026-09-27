@@ -1,4 +1,4 @@
-﻿#include <bitset/Bitset.h>
+﻿#include <bitset/Bitset.hpp>
 #include <gtest/gtest.h>
 #include <array>
 

@@ -1,8 +1,8 @@
 ﻿
 
 #include <benchmark/benchmark.h>
-#include "store/OrderStore.h"
-#include "OrderBook/OrderBook.h"
+#include "store/OrderStore.hpp"
+#include "OrderBook/OrderBook.hpp"
 #include <random>
 
 static void BM_OrderStoreAddCancel(benchmark::State& state) {
