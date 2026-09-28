@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <lob/parameters/parameters.hpp>
 #include <lob/bucket/Bucket.hpp>
-#include <lob/bitset/Bitset.hpp>
+#include <lob/bitset/HierarchicalBitset.hpp>
 #include <lob/allocators/ObjectPool.hpp>
 #include <lob/allocators/FIFO_FreeList.hpp>
 
@@ -24,7 +24,7 @@ namespace lob {
 		using pool_t = ObjectPool<Order, number_of_orders, FIFO_FreeList>;
 
 		std::array<Bucket, arr_size> buckets;
-		Bitset<arr_size> bitset;
+		HierarchicalBitset<arr_size, 1> bitset;
 
 		pool_t pool;
 
