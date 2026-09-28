@@ -8,6 +8,10 @@
 #   vcpkg install abseil benchmark gtest boost-headers boost-intrusive \
 #         boost-interprocess --triplet x64-mingw-static --host-triplet x64-mingw-static
 # Pass extra cmake configure flags with CMAKE_FLAGS="-DFOO=BAR".
+# Google Benchmark flags for `bench` are given without the leading dashes
+# (make would take --foo as its own option), e.g.
+#   make bench benchmark_repetitions=5 "benchmark_filter=<1, 10000>"
+# or verbatim through BENCH_ARGS="--benchmark_repetitions=5".
 
 CMAKE       ?= cmake
 GENERATOR   ?= Ninja
@@ -15,6 +19,11 @@ BUILD_DIR   ?= build/baseline
 JOBS        ?= 4
 VCPKG_ROOT  ?= C:/package/vcpkg
 CMAKE_FLAGS ?=
+BENCH_ARGS  ?=
+
+# Every benchmark_<flag>=<value> given on the command line becomes
+# --benchmark_<flag>=<value> for the benchmark executable.
+BENCH_FLAGS := $(foreach v,$(filter benchmark_%,$(.VARIABLES)),$(if $(filter command line,$(origin $v)),"--$v=$($v)")) $(BENCH_ARGS)
 
 VCPKG_TOOLCHAIN := $(subst \,/,$(VCPKG_ROOT))/scripts/buildsystems/vcpkg.cmake
 
@@ -54,7 +63,7 @@ configure:
 ## land in the build tree, not in the repository
 bench: configure
 	$(CMAKE) --build $(BUILD_DIR) --target benchmark_orderbook $(JOBS_FLAG)
-	$(CMAKE) -E chdir $(BUILD_DIR) ./benchmark_orderbook$(EXE)
+	$(CMAKE) -E chdir $(BUILD_DIR) ./benchmark_orderbook$(EXE) $(BENCH_FLAGS)
 
 ## clean: remove build artefacts, keep the configured tree
 clean:
@@ -66,4 +75,4 @@ distclean:
 
 help:
 	@echo "targets: bench configure clean distclean"
-	@echo "vars:    BUILD_DIR=...  JOBS=N  GENERATOR=...  VCPKG_ROOT=...  VCPKG_TRIPLET=...  CMAKE_FLAGS=..."
+	@echo "vars:    BUILD_DIR=...  JOBS=N  GENERATOR=...  VCPKG_ROOT=...  VCPKG_TRIPLET=...  CMAKE_FLAGS=...  BENCH_ARGS=...  benchmark_<flag>=..."
