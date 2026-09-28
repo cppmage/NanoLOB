@@ -3,6 +3,7 @@
 #   make debug | rel-deb | release   configure + build that configuration
 #   make tests                       build + run the unit tests
 #   make benchs                      build + run the benchmarks
+#   make bench                       build + run the order-book benchmark
 #   make clean / distclean
 #
 # Override the configuration used by `tests` / `benchs` with CONFIG=<name>, e.g.
@@ -35,7 +36,7 @@ ifeq ($(OS),Windows_NT)
   EXE := .exe
 endif
 
-.PHONY: all debug rel-deb release tests benchs run-tests run-benchs \
+.PHONY: all debug rel-deb release tests benchs bench run-tests run-benchs \
         configure build clean distclean help
 
 all: debug
@@ -67,6 +68,14 @@ benchs:
 	$(CMAKE) --build $(BUILD_ROOT)/$(CONFIG) --config $(BUILD_TYPE_$(CONFIG)) --target lob_benchs $(JOBS_FLAG)
 	./$(BUILD_ROOT)/$(CONFIG)/benchs/lob_benchs$(EXE)
 
+## bench: build and run the order-book benchmark; its WAL and output files
+## land in the build tree, not in the repository
+bench: CONFIG := release
+bench:
+	@$(MAKE) --no-print-directory configure CONFIG=$(CONFIG)
+	$(CMAKE) --build $(BUILD_ROOT)/$(CONFIG) --config $(BUILD_TYPE_$(CONFIG)) --target lob_bench_orderbook $(JOBS_FLAG)
+	$(CMAKE) -E chdir $(BUILD_ROOT)/$(CONFIG)/benchs ./lob_bench_orderbook$(EXE)
+
 ## clean: remove build artefacts of $(CONFIG), keep the configured tree
 clean:
 	-$(CMAKE) --build $(BUILD_ROOT)/$(CONFIG) --target clean
@@ -76,5 +85,5 @@ distclean:
 	-$(CMAKE) -E rm -rf $(BUILD_ROOT)
 
 help:
-	@echo "targets: debug rel-deb release tests benchs clean distclean"
+	@echo "targets: debug rel-deb release tests benchs bench clean distclean"
 	@echo "vars:    CONFIG=debug|rel-deb|release  JOBS=N  GENERATOR=...  CMAKE_FLAGS=..."

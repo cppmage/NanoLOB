@@ -1,12 +1,12 @@
 ﻿#pragma once
 
-#include "lockfree/SPSCQueue.hpp"
-#include "trade_event/TradeEvent.hpp"
-#include "wal/WALShared.hpp"
+#include <lob/lockfree/SPSCQueue.hpp>
+#include <lob/trade_event/TradeEvent.hpp>
+#include <lob/wal/WALShared.hpp>
 #include <thread>
-#include "stats/StatsTransfer.hpp"
-#include "time/Time.hpp"
-#include "time/TicksTimer.hpp"
+#include <lob/stats/StatsTransfer.hpp>
+#include <lob/time/Time.hpp>
+#include <lob/time/TicksTimer.hpp>
 
 namespace lob {
 

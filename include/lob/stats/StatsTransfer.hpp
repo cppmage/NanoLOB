@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "stats/CommonStats.hpp"
-#include "stats/PercentileStats.hpp"
+#include <lob/stats/CommonStats.hpp>
+#include <lob/stats/PercentileStats.hpp>
 
 namespace lob {
 

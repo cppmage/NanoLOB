@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <other/Other.hpp>
-#include <time/Time.hpp>
+#include <lob/other/Other.hpp>
+#include <lob/time/Time.hpp>
 
 namespace lob {
 

@@ -27,8 +27,9 @@ FetchContent_Declare(
     Boost
     URL https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-cmake.tar.xz
     DOWNLOAD_EXTRACT_TIMESTAMP ON
+    EXCLUDE_FROM_ALL
 )
-set(BOOST_INCLUDE_LIBRARIES intrusive)
+set(BOOST_INCLUDE_LIBRARIES intrusive interprocess)
 set(BOOST_ENABLE_CMAKE ON)
 FetchContent_MakeAvailable(Boost)
 
@@ -50,6 +51,11 @@ target_compile_features(lob INTERFACE cxx_std_23)
 # own, built by a different GCC) and crash on startup. Link the runtime in.
 if(MINGW)
     target_link_options(lob INTERFACE -static-libgcc -static-libstdc++ -static)
+    # GCC 14+ keeps the Windows console backend of std::print in libstdc++exp.
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 14)
+        set(LOB_STDCXX_EXP stdc++exp)
+        target_link_libraries(lob INTERFACE ${LOB_STDCXX_EXP})
+    endif()
 endif()
 
 # Constants

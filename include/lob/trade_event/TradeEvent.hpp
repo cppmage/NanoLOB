@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <new>
 #include <chrono>
-#include <lockfree/SPSCQueue.hpp>
-#include <other/Other.hpp>
-#include <time/Time.hpp>
+#include <lob/lockfree/SPSCQueue.hpp>
+#include <lob/other/Other.hpp>
+#include <lob/time/Time.hpp>
 
 namespace lob {
 	enum class Side : bool {
