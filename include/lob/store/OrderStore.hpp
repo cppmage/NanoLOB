@@ -24,7 +24,7 @@ namespace lob {
 		using pool_t = ObjectPool<Order, number_of_orders, FIFO_FreeList>;
 
 		std::array<Bucket, arr_size> buckets;
-		HierarchicalBitset<arr_size, 1> bitset;
+		HierarchicalBitset<arr_size, cache_line_size / sizeof(bit_container)> bitset;
 
 		pool_t pool;
 
